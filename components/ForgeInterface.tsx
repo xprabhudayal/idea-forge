@@ -5,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Progress } from "@/components/ui/progress"
 import { IdeaCard } from "@/components/IdeaCard"
+import { LoadingOverlay } from "@/components/LoadingOverlay"
 import { Flame, Search, Layers, Loader2, StopCircle, Sparkles } from "lucide-react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
@@ -20,39 +20,40 @@ interface ForgeUpdate {
 }
 
 export function ForgeInterface() {
-  const [mode, setMode] = useState<"independent" | "depth">("independent")
+  const [mode, setMode] = useState<"independent" | "depth">("depth")
   const [track, setTrack] = useState("")
   const [requirements, setRequirements] = useState("")
   const [problemStatement, setProblemStatement] = useState("")
   const [threshold, setThreshold] = useState([7])
   const [maxIterations, setMaxIterations] = useState([10])
-  
+
   const [isLoading, setIsLoading] = useState(false)
-  const [currentUpdate, setCurrentUpdate] = useState<ForgeUpdate | null>(null)
+  const [statusMessage, setStatusMessage] = useState("")
   const [finalIdea, setFinalIdea] = useState<any>(null)
   const [finalEvaluation, setFinalEvaluation] = useState<any>(null)
-  const [iterationHistory, setIterationHistory] = useState<ForgeUpdate[]>([])
 
   const runIndependent = useCallback(async () => {
     if (!track) return
-    
+
     setIsLoading(true)
+    setStatusMessage("Searching specifically for high-impact problems...")
     setFinalIdea(null)
     setFinalEvaluation(null)
-    
+
     try {
       const response = await fetch(`${API_URL}/api/independent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ track, requirements })
       })
-      
+
       if (!response.ok) throw new Error("Failed to generate idea")
-      
+
       const data = await response.json()
       setFinalIdea(data.idea)
     } catch (error) {
       console.error("Error:", error)
+      setStatusMessage("Error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -60,13 +61,12 @@ export function ForgeInterface() {
 
   const runDepth = useCallback(async () => {
     if (!track || !problemStatement) return
-    
+
     setIsLoading(true)
+    setStatusMessage("Initializing Forge...")
     setFinalIdea(null)
     setFinalEvaluation(null)
-    setIterationHistory([])
-    setCurrentUpdate(null)
-    
+
     try {
       const response = await fetch(`${API_URL}/api/depth`, {
         method: "POST",
@@ -78,36 +78,55 @@ export function ForgeInterface() {
           max_iterations: maxIterations[0]
         })
       })
-      
+
       if (!response.ok) throw new Error("Failed to start depth mode")
-      
+
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
-      
+      let buffer = ""
+
       while (reader) {
         const { done, value } = await reader.read()
         if (done) break
-        
-        const text = decoder.decode(value)
-        const lines = text.split("\n").filter(line => line.startsWith("data: "))
-        
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line.slice(6)) as ForgeUpdate
-            setCurrentUpdate(data)
-            setIterationHistory(prev => [...prev, data])
-            
-            if (data.stage === "complete" || data.stage === "max_iterations") {
-              setFinalIdea(data.idea)
-              setFinalEvaluation(data.evaluation)
+
+        buffer += decoder.decode(value, { stream: true })
+
+        // SSE messages are delimited by double newlines
+        const parts = buffer.split("\n\n")
+
+        // The last part is either empty (if ended with \n\n) or incomplete
+        buffer = parts.pop() || ""
+
+        for (const part of parts) {
+          const lines = part.split("\n")
+          for (const line of lines) {
+            if (line.trim().startsWith("data:")) {
+              try {
+                // Remove "data:" prefix and trim any whitespace (including the space after colon)
+                const jsonStr = line.substring(line.indexOf(":") + 1).trim()
+                if (!jsonStr) continue
+
+                const data = JSON.parse(jsonStr) as ForgeUpdate
+
+                // Prioritize the explicit message
+                if (data.message) {
+                  setStatusMessage(data.message)
+                }
+
+                if (data.stage === "complete" || data.stage === "max_iterations") {
+                  setFinalIdea(data.idea)
+                  setFinalEvaluation(data.evaluation)
+                }
+              } catch (e) {
+                console.error("Parse error:", e)
+              }
             }
-          } catch (e) {
-            console.error("Parse error:", e)
           }
         }
       }
     } catch (error) {
       console.error("Error:", error)
+      setStatusMessage("Connection failed.")
     } finally {
       setIsLoading(false)
     }
@@ -123,6 +142,8 @@ export function ForgeInterface() {
 
   return (
     <div className="min-h-screen bg-background p-6">
+      <LoadingOverlay isVisible={isLoading} message={statusMessage} />
+
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -178,16 +199,12 @@ export function ForgeInterface() {
                     className="w-full mt-1 px-3 py-2 bg-secondary rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                   />
                 </div>
-                <Button 
-                  onClick={runIndependent} 
+                <Button
+                  onClick={runIndependent}
                   disabled={isLoading || !track}
                   className="w-full"
                 >
-                  {isLoading ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Searching...</>
-                  ) : (
-                    <><Sparkles className="h-4 w-4 mr-2" /> Generate Idea</>
-                  )}
+                  <Sparkles className="h-4 w-4 mr-2" /> Generate Idea
                 </Button>
               </CardContent>
             </Card>
@@ -257,16 +274,12 @@ export function ForgeInterface() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    onClick={runDepth} 
+                  <Button
+                    onClick={runDepth}
                     disabled={isLoading || !track || !problemStatement}
                     className="flex-1"
                   >
-                    {isLoading ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Forging...</>
-                    ) : (
-                      <><Flame className="h-4 w-4 mr-2" /> Start Forge</>
-                    )}
+                    <Flame className="h-4 w-4 mr-2" /> Start Forge
                   </Button>
                   {isLoading && (
                     <Button variant="destructive" onClick={stopDepth}>
@@ -279,22 +292,6 @@ export function ForgeInterface() {
           </TabsContent>
         </Tabs>
 
-        {/* Progress Display */}
-        {isLoading && currentUpdate && (
-          <Card className="border-primary/50 animate-pulse-glow">
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span>Iteration {currentUpdate.iteration}/{maxIterations[0]}</span>
-                  <span className="capitalize">{currentUpdate.stage}</span>
-                </div>
-                <Progress value={(currentUpdate.iteration / maxIterations[0]) * 100} />
-                <p className="text-sm text-muted-foreground">{currentUpdate.message}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Results */}
         {finalIdea && (
           <div className="space-y-4">
@@ -304,39 +301,6 @@ export function ForgeInterface() {
             </h2>
             <IdeaCard idea={finalIdea} evaluation={finalEvaluation} />
           </div>
-        )}
-
-        {/* Iteration History */}
-        {iterationHistory.length > 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Iteration History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {iterationHistory.map((update, i) => (
-                  <div 
-                    key={i} 
-                    className={`p-2 rounded text-sm ${
-                      update.stage === "complete" ? "bg-green-500/20" :
-                      update.stage === "rejected" ? "bg-red-500/10" :
-                      "bg-secondary/50"
-                    }`}
-                  >
-                    <span className="font-mono text-xs text-muted-foreground">
-                      [{update.iteration}]
-                    </span>{" "}
-                    {update.message}
-                    {update.evaluation && (
-                      <span className="ml-2 text-xs">
-                        Score: {update.evaluation.overall_score}/10
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         )}
       </div>
     </div>
