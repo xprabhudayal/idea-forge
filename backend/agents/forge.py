@@ -54,9 +54,9 @@ class IdeaForge:
         - Iterates until threshold met or interrupted
     """
     
-    def __init__(self, model_id: str = "gpt-4o"):
-        self.researcher = ResearcherAgent(model_id)
-        self.critique = CritiqueAgent(model_id)
+    def __init__(self):
+        self.researcher = ResearcherAgent()
+        self.critique = CritiqueAgent()
         self.state: Optional[ForgeState] = None
     
     async def run_independent(

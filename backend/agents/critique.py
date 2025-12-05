@@ -1,7 +1,7 @@
 """Critique Agent - Stage 2 of the idea validation pipeline."""
 import json
 from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from config import get_model_config
 
 
 CRITIQUE_SYSTEM_PROMPT = """You are a harsh but fair hackathon judge and idea critic. Your job is to evaluate hackathon ideas with strict criteria.
@@ -64,10 +64,12 @@ Respond with your evaluation in the specified JSON format.
 class CritiqueAgent:
     """Agent responsible for critiquing and scoring hackathon ideas."""
     
-    def __init__(self, model_id: str = "gpt-4o"):
+    def __init__(self):
+        model, model_id = get_model_config()
+        self.model_id = model_id
         self.agent = Agent(
             name="Hackathon Critique",
-            model=OpenAIChat(id=model_id),
+            model=model,
             instructions=CRITIQUE_SYSTEM_PROMPT,
             markdown=False,
         )

@@ -6,16 +6,25 @@ echo "🔥 Setting up Idea Forge..."
 command -v node >/dev/null 2>&1 || { echo "❌ Node.js is required but not installed."; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "❌ Python 3 is required but not installed."; exit 1; }
 
+# Check for uv
+if ! command -v uv >/dev/null 2>&1; then
+    echo "📦 UV not found. Installing UV..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
+echo "✅ UV installed: $(uv --version)"
+
 # Setup frontend
 echo "📦 Installing frontend dependencies..."
 npm install
 
-# Setup backend
-echo "🐍 Setting up Python backend..."
+# Setup backend with UV
+echo "🐍 Setting up Python backend with UV..."
 cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
 cd ..
 
 # Create .env files if they don't exist
@@ -33,14 +42,23 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
-echo "1. Add your API keys to .env and backend/.env"
-echo "   - OPENAI_API_KEY"
-echo "   - SERPER_API_KEY (get one at https://serper.dev)"
+echo "1. Configure your model in backend/.env"
+echo "   Choose ONE provider (OpenAI, Gemini, or Groq)"
+echo "   See MODEL_SETUP.md for detailed instructions"
 echo ""
-echo "2. Start the backend:"
-echo "   cd backend && source venv/bin/activate && python main.py"
+echo "2. Add your API keys to backend/.env"
+echo "   - SERPER_API_KEY (required - get at https://serper.dev)"
+echo "   - Your chosen model's API key (see MODEL_SETUP.md)"
 echo ""
-echo "3. Start the frontend (in another terminal):"
+echo "3. Test your configuration:"
+echo "   cd backend && source .venv/bin/activate && python test_config.py"
+echo ""
+echo "4. Start the backend:"
+echo "   cd backend && source .venv/bin/activate && python main.py"
+echo ""
+echo "5. Start the frontend (in another terminal):"
 echo "   npm run dev"
 echo ""
-echo "4. Open http://localhost:3000"
+echo "6. Open http://localhost:3000"
+echo ""
+echo "💡 Using UV for Python package management (faster than pip!)"

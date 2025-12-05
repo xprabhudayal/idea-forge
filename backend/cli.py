@@ -8,11 +8,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from agents import IdeaForge
+from config import get_model_name
 
 
 async def run_independent(track: str, requirements: str = ""):
     """Run independent mode from CLI."""
+    model_name = get_model_name()
     print(f"\n🔥 Idea Forge - Independent Mode")
+    print(f"Model: {model_name}")
     print(f"Track: {track}")
     print(f"Requirements: {requirements or 'None'}")
     print("-" * 50)
@@ -32,7 +35,9 @@ async def run_depth(
     max_iterations: int = 10
 ):
     """Run depth mode from CLI."""
+    model_name = get_model_name()
     print(f"\n🔥 Idea Forge - Depth Mode")
+    print(f"Model: {model_name}")
     print(f"Track: {track}")
     print(f"Problem: {problem_statement}")
     print(f"Threshold: {threshold}/10 ({threshold * 10}%)")

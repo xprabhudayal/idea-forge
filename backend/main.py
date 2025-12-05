@@ -13,6 +13,7 @@ import json
 load_dotenv()
 
 from agents import IdeaForge, ForgeUpdate
+from config import get_model_name
 
 # Global forge instance
 forge: Optional[IdeaForge] = None
@@ -21,7 +22,13 @@ forge: Optional[IdeaForge] = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global forge
-    forge = IdeaForge()
+    try:
+        forge = IdeaForge()
+        model_name = get_model_name()
+        print(f"✅ Idea Forge initialized with model: {model_name}")
+    except Exception as e:
+        print(f"❌ Failed to initialize Idea Forge: {e}")
+        raise
     yield
     forge = None
 
@@ -63,7 +70,12 @@ class IdeaResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "Idea Forge API", "status": "running"}
+    model_name = get_model_name()
+    return {
+        "message": "Idea Forge API",
+        "status": "running",
+        "model": model_name
+    }
 
 
 @app.get("/api/status")

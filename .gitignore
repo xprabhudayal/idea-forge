@@ -49,6 +49,10 @@ venv/
 dist/
 .eggs/
 
+# UV
+.uv/
+uv.lock
+
 # IDE
 .idea/
 .vscode/

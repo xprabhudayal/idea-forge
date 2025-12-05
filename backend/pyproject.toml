@@ -1,0 +1,23 @@
+[project]
+name = "idea-forge-backend"
+version = "1.1.0"
+description = "AI-powered hackathon idea generator backend"
+requires-python = ">=3.10"
+dependencies = [
+    "agno>=1.0.0",
+    "openai>=1.0.0",
+    "google-generativeai>=0.3.0",
+    "groq>=0.4.0",
+    "httpx>=0.25.0",
+    "python-dotenv>=1.0.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "pydantic>=2.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = []

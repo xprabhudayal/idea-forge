@@ -2,9 +2,9 @@
 import json
 from typing import Optional
 from agno.agent import Agent
-from agno.models.openai import OpenAIChat
 
 from tools.serper import search_reddit, search_hackathon_winners, search_tech_blogs
+from config import get_model_config
 
 
 RESEARCHER_SYSTEM_PROMPT = """You are an expert hackathon idea researcher. Your job is to discover winning hackathon ideas and real problems people face.
@@ -79,10 +79,12 @@ Respond with the idea in the specified JSON format.
 class ResearcherAgent:
     """Agent responsible for researching and generating hackathon ideas."""
     
-    def __init__(self, model_id: str = "gpt-4o"):
+    def __init__(self):
+        model, model_id = get_model_config()
+        self.model_id = model_id
         self.agent = Agent(
             name="Hackathon Researcher",
-            model=OpenAIChat(id=model_id),
+            model=model,
             instructions=RESEARCHER_SYSTEM_PROMPT,
             markdown=False,
         )
