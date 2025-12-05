@@ -1,0 +1,41 @@
+[
+  {
+    "name": "ai_accessibility_companion",
+    "title": "AccessAI: Real-time Accessibility Companion for the Visually Impaired",
+    "problem": "Visually impaired individuals struggle to navigate unfamiliar environments and read text in real-world settings",
+    "solution": "A mobile app using computer vision and LLMs to describe surroundings, read text, and provide navigation assistance in real-time",
+    "tech_stack": ["React Native", "GPT-4 Vision", "TensorFlow Lite", "Text-to-Speech API"],
+    "unique_angle": "Combines scene understanding with conversational AI for natural interaction",
+    "demo_potential": "Live demo walking through a room, reading signs, identifying objects",
+    "feasibility_score": 7,
+    "innovation_score": 6,
+    "impact_score": 9,
+    "sources": []
+  },
+  {
+    "name": "carbon_footprint_tracker",
+    "title": "CarbonLens: AI-Powered Personal Carbon Footprint Analyzer",
+    "problem": "People want to reduce their carbon footprint but don't know which daily choices have the biggest impact",
+    "solution": "An app that analyzes receipts, travel patterns, and purchases to calculate and visualize carbon impact with actionable suggestions",
+    "tech_stack": ["Next.js", "OpenAI", "Plaid API", "D3.js", "PostgreSQL"],
+    "unique_angle": "Uses receipt scanning and bank transaction analysis for accurate tracking without manual input",
+    "demo_potential": "Scan a grocery receipt and instantly see carbon impact breakdown",
+    "feasibility_score": 8,
+    "innovation_score": 7,
+    "impact_score": 8,
+    "sources": []
+  },
+  {
+    "name": "mental_health_journaling",
+    "title": "MindMirror: AI Therapy Companion with Sentiment Analysis",
+    "problem": "Many people can't afford therapy but need mental health support and self-reflection tools",
+    "solution": "A journaling app with AI that provides CBT-based prompts, tracks mood patterns, and offers personalized coping strategies",
+    "tech_stack": ["Flutter", "GPT-4", "Sentiment Analysis API", "Firebase", "Charts.js"],
+    "unique_angle": "Combines journaling with evidence-based CBT techniques and long-term mood tracking",
+    "demo_potential": "Show mood trends over time and AI-generated insights from journal entries",
+    "feasibility_score": 8,
+    "innovation_score": 6,
+    "impact_score": 9,
+    "sources": []
+  }
+]
