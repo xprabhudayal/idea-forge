@@ -1,5 +1,6 @@
 from .researcher import ResearcherAgent
 from .critique import CritiqueAgent
-from .forge import IdeaForge
+# Import both IdeaForge and ForgeUpdate from .forge
+from .forge import IdeaForge, ForgeUpdate
 
-__all__ = ["ResearcherAgent", "CritiqueAgent", "IdeaForge"]
+__all__ = ["ResearcherAgent", "CritiqueAgent", "IdeaForge", "ForgeUpdate"]
